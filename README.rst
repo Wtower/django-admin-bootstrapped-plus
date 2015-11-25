@@ -9,7 +9,7 @@ as provided by the required app
 
 The vertical sidebar provides a stack of links to all models, grouped by the installed apps.
 
-Detailed documentation soon to be published.
+See `Django 9cms <https://github.com/Wtower/django-ninecms>`_ for screenshot.
 
 Dependencies
 ------------
@@ -23,33 +23,28 @@ Quick how-to
 
 This is a quick guide on how to use it.
 
-1. Install django-admin-bootstrapped-plus
+1. Install django-admin-bootstrapped-plus::
 
-  - Download source and place in project root
-  - *Soon available as python package*
+    $ pip install django-admin-bootstrapped-plus
 
-2. Dependencies:
+  - or download source and place in project root
 
-  - Add the following to the ``requirements.txt`` file::
+2. Dependencies (resolved by pip)::
 
-        Django==1.8.7
-        django-admin-bootstrapped==2.5.6
-
-  - Then run::
-
-        $ sudo pip install -r requirements.txt
+    Django==1.8.7
+    django-admin-bootstrapped==2.5.6
 
 3. Settings
 
   - You need to install the app in ``INSTALLED_APPS`` before admin_bootstrapped and before admin,
     so that Django loads the templates properly::
 
-        INSTALLED_APPS = (
-            'admin_bootstrapped_plus',
-            'django_admin_bootstrapped',
-            'django.contrib.admin',
-            # ...
-        )
+      INSTALLED_APPS = (
+          'admin_bootstrapped_plus',
+          'django_admin_bootstrapped',
+          'django.contrib.admin',
+          # ...
+      )
 
 4. Start the development server and visit http://127.0.0.1:8000/admin/
 

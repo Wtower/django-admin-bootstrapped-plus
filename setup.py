@@ -18,7 +18,7 @@ setup(
     author_email='info@9-dev.com',
     license='BSD-3 License',
     keywords='admin theme',
-    packages=['admin_bootstrapped_plus', 'docs'],
+    packages=['admin_bootstrapped_plus'],
     include_package_data=True,
     install_requires=[
         'Django',
