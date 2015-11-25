@@ -1,0 +1,253 @@
+{% load i18n admin_static bootstrapped_goodies_tags staticfiles admin_bootstrapped_plus %}
+{% get_current_language as LANGUAGE_CODE %}{% get_current_language_bidi as LANGUAGE_BIDI %}
+{% comment %}
+
+Base template
+Author: George Karakostas
+Copyright: Copyright 2015, George Karakostas
+Licence: BSD-3
+Email: gkarak@9-dev.com
+
+{% endcomment %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE|default:"en-us" }}"{% if LANGUAGE_BIDI %} dir="rtl"{% endif %}>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>{% block title %}{% endblock %}</title>
+
+    {% block extrastyle %}{% endblock %}
+
+    <link rel="stylesheet" href="{% static "bootstrap/css/bootstrap.min.css" %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static "admin/css/overrides.css" %}" />
+    <link rel="stylesheet" href="{% static "admin_bootstrapped_plus/css/admin_bootstrapped_plus.css" %}"/>
+
+    {% if LANGUAGE_BIDI %}
+        <link href="{% static "bootstrap-rtl/css/bootstrap-rtl.min.css" %}" rel="stylesheet"/>
+        <link href="{% static "bootstrap-rtl/css/bootstrap-flipped.min.css" %}" rel="stylesheet"/>
+    {% endif %}
+
+    {# HTML5 shiv and Respond.js for IE8 support of HTML5 elements and media queries #}
+    {# WARNING: Respond.js doesn't work if you view the page via file:// #}
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <script type="text/javascript">
+    //<![CDATA[
+        window.__admin_media_prefix__ = "{% filter escapejs %}{% static "admin/" %}{% endfilter %}";
+        window.__admin_utc_offset__ = "{% filter escapejs %}{% now "Z" %}{% endfilter %}";
+    //]]>
+    </script>
+    <script src="{% static "admin/js/jquery-1.9.1.min.js" %}"></script>
+    <script src="{% static "admin/js/jquery-migrate-1.2.1.min.js" %}"></script>
+    <script src="{% static "bootstrap/js/bootstrap.min.js" %}"></script>
+
+    {% block extrahead %}{% endblock %}
+
+    {% block blockbots %}<meta name="robots" content="NONE,NOARCHIVE" />{% endblock %}
+    <script type="text/javascript">
+    //<![CDATA[
+            (function($) {
+                $(document).ready(function() {
+                    $('input[type="submit"]').addClass('btn');
+                    $('[title]').tooltip();
+                });
+            }(jQuery));
+    //]]>
+    </script>
+</head>
+{% load i18n %}
+
+<body class="{% if is_popup %}popup {% endif %}{% block bodyclass %}{% endblock %}">
+
+{% if not is_popup %}
+    <div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="navbar-inner">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#header-navbar-collapse">
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    {% block branding %}{% endblock %}
+                </div>
+                <div id="header-navbar-collapse" class="navbar-collapse collapse navbar-{% if LANGUAGE_BIDI %}left{% else %}right{% endif %}">
+                    <ul class="nav navbar-nav">
+                        {% if has_permission %}
+                        {% block usertools %}
+                        <li class="dropdown">
+                            {% block welcome-msg %}
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">{% trans 'Welcome,' %} <strong>{% filter force_escape %}{% firstof user.get_short_name user.get_username %}{% endfilter %}</strong> <span class="caret"></span></a>
+                            {% endblock %}
+                            <ul class="dropdown-menu">
+                                {% if site_url %}
+                                    <li><a href="{{ site_url }}">{% trans 'View site' %}</a></li>
+                                {% endif %}
+                                {% if user.is_active and user.is_staff %}
+                                    {% url 'django-admindocs-docroot' as docsroot %}
+                                    {% if docsroot %}
+                                        <li><a href="{{ docsroot }}">{% trans 'Documentation' %}</a></li>
+                                    {% endif %}
+                                {% endif %}
+                                {% if user.has_usable_password %}
+                                <li><a href="{% url 'admin:password_change' %}">{% trans 'Change password' %}</a></li>
+                                {% endif %}
+                                <li><a href="{% url 'admin:logout' %}">{% trans 'Log out' %}</a></li>
+                            </ul>
+                        </li>
+                        {% endblock %}
+                        {% block languages %}
+                        <li class="divider-vertical"></li>
+                        {% language_selector %}
+                        {% endblock languages %}
+                        {% block logs %}
+                        <li class="dropdown" id="recent-actions-module">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">{% trans 'Recent Actions' %} <b class="caret"></b></a>
+                            {% load log %}
+                            {% get_admin_log 10 as admin_log for_user user %}
+                            <ul class="dropdown-menu">
+                                {% for entry in admin_log %}
+                                <li class="{% if entry.is_addition %}addlink{% endif %}{% if entry.is_change %}changelink{% endif %}{% if entry.is_deletion %}deletelink{% endif %}">
+                                    <a href="{% if entry.is_deletion or not entry.get_admin_url %}#{% else %}{{ entry.get_admin_url }}{% endif %}">
+                                        <i class="glyphicon glyphicon-{% if entry.is_addition %}plus{% endif %}{% if entry.is_change %}edit{% endif %}{% if entry.is_deletion %}remove{% endif %}"></i>
+                                        {{ entry.object_repr }}
+                                        {% if entry.content_type %}
+                                        <span class="mini quiet">({% filter capfirst %}{{ entry.content_type }}{% endfilter %})</span>
+                                        {% else %}
+                                        <span class="mini quiet">({% trans 'Unknown content' %})</span>
+                                        {% endif %}
+                                    </a>
+                                </li>
+                                {% empty %}
+                                <li class="disabled"><a href="#">{% trans 'None available' %}</a></li>
+                                {% endfor %}
+                            </ul>
+                        </li>
+                        {% endblock %}
+                        {% block userlinks %}
+                        {% url 'django-admindocs-docroot' as docsroot %}
+                        {% if docsroot %}
+                        <li class="divider-vertical"></li>
+                        <li><a href="{{ docsroot }}">{% trans 'Documentation' %}</a></li>
+                        {% endif %}
+                        {% endblock %}
+                        {% endif %}
+                        {% block nav-global %}{% endblock %}
+                    </ul>
+                </div><!--/.nav-collapse -->
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<div id="wrapper"{% if is_popup or not user.is_authenticated %} class="toggled"{% endif %}>
+
+
+    <div id="sidebar-wrapper">
+        <div class="sidebar inner">
+            <div class="panel-group" id="sidebar-accordion" role="tablist" aria-multiselectable="true">
+                {% get_app_list as admin_app_list %}
+                {% for app in admin_app_list %}
+                    <div class="panel panel-default">
+                        <div class="panel-heading" role="tab" id="{{ app.app_label }}">
+                            <h4 class="panel-title">
+                                <a class="collapsed" role="button" data-toggle="collapse" data-parent="#sidebar-accordion"
+                                   href="#collapse-{{ app.app_label }}" aria-expanded="true"
+                                   aria-controls="collapse-{{ app.app_label }}">
+                                    {% render_app_name app %}
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapse-{{ app.app_label }}" class="panel-collapse collapse in" role="tabpanel"
+                             aria-labelledby="{{ app.app_label }}">
+                            <div class="panel-body">
+                                <ul class="nav nav-pills nav-stacked">
+                                    {% for model in app.models %}
+                                        <li role="presentation"{% if model.admin_url == request.path %}
+                                            class="active"{% endif %}>
+                                            {% if model.admin_url %}
+                                                <a href="{{ model.admin_url }}">{{ model.name }}</a>
+                                            {% else %}
+                                                {{ model.name }}
+                                            {% endif %}
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+
+    <div id="page-content-wrapper">
+
+        <div class="container-fluid">
+
+            {% if not is_popup %}
+                <div class="row">
+                    <div class="col-sm-12">
+                        {% block breadcrumbs %}
+                        {% endblock %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <div id="content" class="{% block coltype %}colM{% endblock %}">
+                {% block navbar %}
+                <div class="navbar navbar-default">
+                    <div class="navbar-inner">
+                        {% block pretitle %}{% endblock %}
+                            <div class="navbar-header">
+                                {% block content-navbar-collapse %}
+                                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#content-navbar-collapse" aria-expanded="false" aria-controls="navbar">
+                                    <span class="sr-only">Toggle navigation</span>
+                                    <span class="icon-bar"></span>
+                                    <span class="icon-bar"></span>
+                                    <span class="icon-bar"></span>
+                                </button>
+                                {% endblock %}
+                            {% block content_title %}
+                            {% if title %}
+                                <span class="navbar-brand">{% render_with_template_if_exist title|lower|add:"/admin_app_name.html" title %}</span>
+                            {% endif %}
+                            {% endblock %}
+                            </div>
+                        {% block object-tools %}{% endblock %}
+                    </div>
+                </div>
+                {% endblock navbar %}
+
+                {% block messages %}
+                {% if messages %}
+                <div class="row">
+                    <div class="col-sm-12">
+                        {% for message in messages %}
+                        <div class="alert {{ message.tags|default:"alert-info" }}">
+                            {{ message|capfirst }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                {% endblock messages %}
+
+                {% block content %}{{ content }}{% endblock %}
+                {% block sidebar %}{% endblock %}
+            </div>
+
+            {% block footer %}<footer id="footer"></footer>{% endblock %}
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>
