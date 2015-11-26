@@ -1,5 +1,4 @@
 include LICENSE
 include README.rst
-recursive-include admin_bootstrapped_plus/static *
-recursive-include admin_bootstrapped_plus/templates *
+recursive-include admin_bootstrapped_plus *
 recursive-include docs *
