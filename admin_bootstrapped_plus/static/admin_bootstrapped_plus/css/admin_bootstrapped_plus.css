@@ -112,3 +112,12 @@
 }
 
 body { padding-top: 50px; }
+
+select {
+  color: #333;
+  background-color: #fff;
+  border-color: #ccc;
+  font-size: 1em;
+  padding: 7px;
+  border-radius: 4px;
+}
